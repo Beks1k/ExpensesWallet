@@ -1,6 +1,6 @@
 const KEY = 'expenseswallet.v1';
-const EXPENSE_CATS = ['Food', 'Transport', 'Home', 'Health', 'Shopping', 'Other'];
-const INCOME_CATS = ['Salary', 'Gift', 'Other'];
+const EXPENSE_CATS = ['Еда', 'Транспорт', 'Дом', 'Здоровье', 'Покупки', 'Другое'];
+const INCOME_CATS = ['Зарплата', 'Подарок', 'Другое'];
 
 let type = 'expense';
 let viewYear, viewMonth;
@@ -16,7 +16,7 @@ function load() {
   catch { return []; }
 }
 function save(tx) { localStorage.setItem(KEY, JSON.stringify(tx)); }
-function fmt(n) { return (Math.round(n * 100) / 100).toLocaleString(); }
+function fmt(n) { return (Math.round(n * 100) / 100).toLocaleString('ru-RU'); }
 function monthId(y, m) { return y + '-' + String(m + 1).padStart(2, '0'); }
 
 function setType(t) {
@@ -38,8 +38,8 @@ function render() {
     .sort((a, b) => (b.date + b.createdAt).localeCompare(a.date + a.createdAt));
 
   const d = new Date(viewYear, viewMonth, 1);
-  $('currentMonth').textContent = d.toLocaleString(undefined, { month: 'long', year: 'numeric' });
-  $('monthLabel').textContent = '· ' + d.toLocaleString(undefined, { month: 'short' });
+  $('currentMonth').textContent = d.toLocaleString('ru-RU', { month: 'long', year: 'numeric' });
+  $('monthLabel').textContent = '· ' + d.toLocaleString('ru-RU', { month: 'short' });
 
   let tin = 0, tout = 0;
   items.forEach(t => { if (t.type === 'income') tin += +t.amount; else tout += +t.amount; });
@@ -56,10 +56,10 @@ function render() {
       <div class="meta">${escapeHtml(t.date)}</div></div>
       <div style="display:flex;gap:8px;align-items:center">
         <span class="${t.type === 'income' ? 'amt-income' : 'amt-expense'}">${sign}${fmt(+t.amount)}</span>
-        <button class="del" aria-label="Delete">×</button>
+        <button class="del" aria-label="Удалить">×</button>
       </div>`;
     li.querySelector('.del').onclick = () => {
-      if (!confirm('Delete this entry?')) return;
+      if (!confirm('Удалить эту запись?')) return;
       save(load().filter(x => x.id !== t.id));
       render();
     };
@@ -79,7 +79,7 @@ $('nextMonth').onclick = () => { viewMonth++; if (viewMonth > 11) { viewMonth = 
 $('txForm').addEventListener('submit', (e) => {
   e.preventDefault();
   const amount = parseFloat($('amount').value);
-  if (!amount || amount <= 0) { alert('Enter amount'); return; }
+  if (!amount || amount <= 0) { alert('Введите сумму'); return; }
   const date = $('date').value || new Date().toISOString().slice(0, 10);
   const all = load();
   all.push({ id: Date.now().toString(), type, amount, category: $('category').value, date, note: $('note').value.trim(), createdAt: Date.now().toString() });
@@ -102,7 +102,7 @@ $('exportBtn').onclick = () => {
 };
 
 $('wipeBtn').onclick = () => {
-  if (!confirm('Delete ALL entries on this phone? Export first if needed.')) return;
+  if (!confirm('Удалить ВСЕ записи на этом телефоне? Сначала скачайте копию.')) return;
   localStorage.removeItem(KEY);
   render();
 };

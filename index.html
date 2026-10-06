@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -18,57 +18,57 @@
   <main class="app">
     <header class="card balance">
       <div>
-        <p class="label">Balance <span id="monthLabel"></span></p>
+        <p class="label">Баланс <span id="monthLabel"></span></p>
         <h1 id="balance">0</h1>
       </div>
       <div class="row">
-        <div class="pill in"><span>In</span><strong id="totalIn">0</strong></div>
-        <div class="pill out"><span>Out</span><strong id="totalOut">0</strong></div>
+        <div class="pill in"><span>Доход</span><strong id="totalIn">0</strong></div>
+        <div class="pill out"><span>Расход</span><strong id="totalOut">0</strong></div>
       </div>
       <div class="month-nav">
-        <button id="prevMonth" aria-label="Previous month">‹</button>
+        <button id="prevMonth" aria-label="Предыдущий месяц">‹</button>
         <span id="currentMonth"></span>
-        <button id="nextMonth" aria-label="Next month">›</button>
+        <button id="nextMonth" aria-label="Следующий месяц">›</button>
       </div>
     </header>
 
     <section class="card">
       <div class="type-toggle" role="tablist">
-        <button id="typeExpense" class="active" type="button">Expense</button>
-        <button id="typeIncome" type="button">Income</button>
+        <button id="typeExpense" class="active" type="button">Расход</button>
+        <button id="typeIncome" type="button">Доход</button>
       </div>
       <form id="txForm">
-        <label>Amount
+        <label>Сумма
           <input id="amount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0" required />
         </label>
         <div class="grid2">
-          <label>Category
+          <label>Категория
             <select id="category"></select>
           </label>
-          <label>Date
+          <label>Дата
             <input id="date" type="date" required />
           </label>
         </div>
-        <label>Note
-          <input id="note" type="text" placeholder="e.g. groceries" maxlength="80" />
+        <label>Заметка
+          <input id="note" type="text" placeholder="например, продукты" maxlength="80" />
         </label>
-        <button class="primary" type="submit">Add</button>
+        <button class="primary" type="submit">Добавить</button>
       </form>
     </section>
 
     <section class="card">
       <div class="list-head">
-        <h2>History</h2>
+        <h2>История</h2>
         <div>
-          <button id="exportBtn" type="button">Export</button>
-          <button id="wipeBtn" type="button" class="danger">Clear</button>
+          <button id="exportBtn" type="button">Скачать</button>
+          <button id="wipeBtn" type="button" class="danger">Очистить</button>
         </div>
       </div>
       <ul id="list"></ul>
-      <p id="empty" class="muted">No entries yet. Add your first one above.</p>
+      <p id="empty" class="muted">Пока пусто. Добавьте первую запись выше.</p>
     </section>
 
-    <p class="hint">On iPhone: Share → Add to Home Screen to use like an app. Works offline.</p>
+    <p class="hint">На iPhone: Поделиться → На экран «Домой», чтобы пользоваться как приложением. Работает без интернета.</p>
   </main>
 
   <script src="./app.js"></script>
