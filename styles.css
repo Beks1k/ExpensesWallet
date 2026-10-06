@@ -1,0 +1,33 @@
+:root { color-scheme: light; --green:#16a34a; --red:#dc2626; --bg:#f1f5f9; --card:#fff; }
+* { box-sizing: border-box; }
+body { margin:0; font-family: -apple-system, system-ui, Segoe UI, Roboto, sans-serif; background:var(--bg); color:#0f172a; }
+.app { max-width:520px; margin:0 auto; padding:12px 12px 40px; }
+.card { background:var(--card); border-radius:16px; padding:16px; margin-bottom:12px; box-shadow:0 1px 4px rgba(0,0,0,.08); }
+.label { margin:0; color:#64748b; font-size:14px; }
+h1 { margin:4px 0 12px; font-size:36px; }
+h2 { margin:0; font-size:18px; }
+.row { display:flex; gap:8px; }
+.pill { flex:1; border-radius:12px; padding:8px 12px; display:flex; justify-content:space-between; background:#f8fafc; }
+.pill.in strong { color:var(--green); }
+.pill.out strong { color:var(--red); }
+.month-nav { display:flex; align-items:center; justify-content:space-between; margin-top:12px; }
+.month-nav button { font-size:24px; width:44px; height:44px; border-radius:12px; border:1px solid #e2e8f0; background:#fff; }
+#currentMonth { font-weight:600; }
+.type-toggle { display:flex; background:#f1f5f9; border-radius:12px; padding:4px; margin-bottom:12px; }
+.type-toggle button { flex:1; border:0; padding:12px; font-size:17px; border-radius:9px; background:transparent; }
+.type-toggle button.active { background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.12); font-weight:700; }
+form label { display:block; font-size:14px; color:#334155; margin-bottom:10px; }
+input, select { width:100%; font-size:18px; padding:12px; margin-top:6px; border-radius:12px; border:1px solid #cbd5e1; background:#fff; }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.primary { width:100%; font-size:19px; padding:14px; border-radius:14px; border:0; background:var(--green); color:#fff; font-weight:700; }
+.list-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.list-head button { border:1px solid #e2e8f0; background:#fff; border-radius:10px; padding:8px 12px; }
+.danger { color:var(--red); }
+ul { list-style:none; margin:0; padding:0; }
+li { display:flex; justify-content:space-between; align-items:center; padding:12px 4px; border-top:1px solid #f1f5f9; }
+li .meta { font-size:13px; color:#64748b; }
+li .amt-expense { color:var(--red); font-weight:700; }
+li .amt-income { color:var(--green); font-weight:700; }
+.del { border:0; background:#fef2f2; color:var(--red); font-size:18px; border-radius:10px; width:40px; height:40px; }
+.muted { color:#94a3b8; }
+.hint { text-align:center; color:#64748b; font-size:13px; }
