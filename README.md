@@ -1,5 +1,7 @@
 # ExpensesWallet — Кошелёк
 
+!!!THIS WAS MADE ENTIRLY BY AI IF YOU DONT LIKE AI MADE PROJECTS PLEASE DONT HATE THIS ONE I WARNED YOU!!!
+
 Family expense tracker that feels like a real app. No server, no sign-up, no App Store. Built for one beloved aunt with an iPhone — and for everyone else too.
 
 **Live:** https://beks1k.github.io/ExpensesWallet/
