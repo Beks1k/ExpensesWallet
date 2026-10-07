@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>ExpensesWallet</title>
+  <title>ExpensesWallet — Кошелёк</title>
   <meta name="theme-color" content="#16a34a" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="Wallet" />
+  <meta name="apple-mobile-web-app-title" content="Кошелёк" />
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" href="./icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="./icon.svg" />
@@ -16,60 +16,82 @@
 </head>
 <body>
   <main class="app">
-    <header class="card balance">
-      <div>
-        <p class="label">Баланс <span id="monthLabel"></span></p>
-        <h1 id="balance">0</h1>
-      </div>
-      <div class="row">
-        <div class="pill in"><span>Доход</span><strong id="totalIn">0</strong></div>
-        <div class="pill out"><span>Расход</span><strong id="totalOut">0</strong></div>
-      </div>
-      <div class="month-nav">
-        <button id="prevMonth" aria-label="Предыдущий месяц">‹</button>
-        <span id="currentMonth"></span>
-        <button id="nextMonth" aria-label="Следующий месяц">›</button>
-      </div>
-    </header>
-
-    <section class="card">
-      <div class="type-toggle" role="tablist">
-        <button id="typeExpense" class="active" type="button">Расход</button>
-        <button id="typeIncome" type="button">Доход</button>
-      </div>
-      <form id="txForm">
-        <label>Сумма
-          <input id="amount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0" required />
-        </label>
-        <div class="grid2">
-          <label>Категория
-            <select id="category"></select>
-          </label>
-          <label>Дата
-            <input id="date" type="date" required />
-          </label>
+    <!-- HOME -->
+    <section id="view-home" class="view">
+      <header class="card hero">
+        <p class="label">Баланс · <span id="monthLabel"></span></p>
+        <h1 id="balance">0 ₸</h1>
+        <div class="row">
+          <div class="pill in"><span>Доход</span><strong id="totalIn">0</strong></div>
+          <div class="pill out"><span>Расход</span><strong id="totalOut">0</strong></div>
         </div>
-        <label>Заметка
-          <input id="note" type="text" placeholder="например, продукты" maxlength="80" />
-        </label>
-        <button class="primary" type="submit">Добавить</button>
-      </form>
+        <div class="month-nav">
+          <button id="prevMonth" aria-label="Предыдущий месяц">‹</button>
+          <span id="currentMonth"></span>
+          <button id="nextMonth" aria-label="Следующий месяц">›</button>
+        </div>
+      </header>
+
+      <section class="card">
+        <div class="type-toggle">
+          <button id="typeExpense" class="active" type="button">Расход</button>
+          <button id="typeIncome" type="button">Доход</button>
+        </div>
+        <form id="txForm">
+          <label>Сумма
+            <input id="amount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0" required />
+          </label>
+          <div class="grid2">
+            <label>Категория<select id="category"></select></label>
+            <label>Дата<input id="date" type="date" required /></label>
+          </div>
+          <label>Заметка<input id="note" type="text" placeholder="например, продукты" maxlength="80" /></label>
+          <button class="primary" type="submit">Добавить</button>
+        </form>
+      </section>
     </section>
 
-    <section class="card">
-      <div class="list-head">
-        <h2>История</h2>
-        <div>
-          <button id="exportBtn" type="button">Скачать</button>
-          <button id="wipeBtn" type="button" class="danger">Очистить</button>
+    <!-- HISTORY -->
+    <section id="view-history" class="view" hidden>
+      <header class="card">
+        <div class="list-head">
+          <h2>История · <span id="historyMonth"></span></h2>
+          <div class="hbtns">
+            <button id="exportBtn" type="button">Скачать</button>
+            <button id="wipeBtn" type="button" class="danger">Очистить</button>
+          </div>
         </div>
-      </div>
-      <ul id="list"></ul>
-      <p id="empty" class="muted">Пока пусто. Добавьте первую запись выше.</p>
+        <ul id="list"></ul>
+        <p id="empty" class="muted">Пока пусто. Добавьте первую запись на вкладке «Главная».</p>
+      </header>
     </section>
 
-    <p class="hint">На iPhone: Поделиться → На экран «Домой», чтобы пользоваться как приложением. Работает без интернета.</p>
+    <!-- REPORT -->
+    <section id="view-report" class="view" hidden>
+      <header class="card">
+        <h2>Отчёт · <span id="reportMonth"></span></h2>
+        <p class="muted" id="reportTotal"></p>
+        <div id="topCat" class="topcat" hidden></div>
+      </header>
+      <section class="card">
+        <h3>Расходы по категориям</h3>
+        <div id="expenseStats"></div>
+      </section>
+      <section class="card">
+        <h3>Доходы по категориям</h3>
+        <div id="incomeStats"></div>
+      </section>
+    </section>
+
+    <p class="hint">На iPhone: Поделиться → На экран «Домой». Работает без интернета.</p>
+    <div class="tabbar-space"></div>
   </main>
+
+  <nav class="tabbar">
+    <button id="tab-home" class="active" type="button"><span class="ticon">◉</span>Главная</button>
+    <button id="tab-history" type="button"><span class="ticon">☰</span>История</button>
+    <button id="tab-report" type="button"><span class="ticon">▦</span>Отчёт</button>
+  </nav>
 
   <script src="./app.js"></script>
   <script>
