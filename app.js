@@ -111,8 +111,8 @@ async function hardReload() {
       for (const k of keys) { try { await caches.delete(k); } catch {} }
     }
   } catch {}
-  const url = location.pathname + '?v=' + Date.now();
-  location.replace(url);
+  // go to clean URL (no ?v leftover), caches are empty so this load is fresh
+  location.replace(location.pathname);
 }
 
 function monthItems() {
