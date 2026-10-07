@@ -153,6 +153,39 @@ $('exportBtn').onclick = () => {
   URL.revokeObjectURL(a.href);
 };
 
+$('importBtn').onclick = () => $('importFile').click();
+$('importFile').addEventListener('change', (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const data = JSON.parse(r.result);
+      if (!Array.isArray(data)) throw new Error('bad');
+      const clean = data.filter(t => t && (t.type === 'expense' || t.type === 'income') && +t.amount > 0 && t.date).map(t => ({
+        id: String(t.id || Date.now() + Math.random()),
+        type: t.type,
+        amount: +t.amount,
+        category: String(t.category || 'Другое'),
+        date: String(t.date).slice(0, 10),
+        note: String(t.note || '').slice(0, 80),
+        createdAt: String(t.createdAt || Date.now())
+      }));
+      if (!clean.length) { alert('В файле нет записей'); return; }
+      const existing = load();
+      const ids = new Set(existing.map(x => x.id));
+      const merged = existing.concat(clean.filter(x => !ids.has(x.id)));
+      save(merged);
+      $('importFile').value = '';
+      render();
+      alert(`Готово: добавлено ${merged.length - existing.length} из ${clean.length}`);
+    } catch {
+      alert('Не получилось прочитать файл. Нужен JSON из кнопки Скачать.');
+    }
+  };
+  r.readAsText(f);
+});
+
 $('wipeBtn').onclick = () => {
   if (!confirm('Удалить ВСЕ записи на этом телефоне? Сначала скачайте копию.')) return;
   localStorage.removeItem(KEY);
