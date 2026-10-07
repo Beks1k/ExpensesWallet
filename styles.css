@@ -30,7 +30,18 @@ input:focus, select:focus { outline:none; border-color:var(--green); }
 .grid2 { display:grid; grid-template-columns:1.2fr 1fr; gap:8px; }
 .primary { width:100%; font-size:19px; padding:15px; border-radius:15px; border:0; background:var(--green); color:#fff; font-weight:800; }
 .primary:active { background:var(--green-d); }
-.list-head { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
+.list-head { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:4px; }
+.set-btn { width:100%; text-align:left; border:1px solid #e2e8f0; background:#f8fafc; border-radius:14px; padding:13px 14px; font-size:17px; font-weight:700; margin-bottom:8px; display:block; }
+.set-btn span { display:block; font-size:13px; font-weight:400; color:var(--mut); margin-top:2px; }
+.danger-btn { color:var(--red); background:#fef2f2; border-color:#fecaca; }
+.primary-btn { color:#fff; background:var(--green); border-color:var(--green); }
+.primary-btn span { color:#dcfce7; }
+.tabbar button { font-size:12px; }
+.cat-row { display:flex; justify-content:space-between; align-items:center; padding:9px 2px; border-top:1px solid #f1f5f9; font-size:15px; }
+.small-del { width:34px; height:34px; }
+.type-toggle.small button { padding:10px; font-size:15px; }
+input[type="color"] { padding:4px; height:52px; cursor:pointer; }
+.link-btn { border:0; background:transparent; color:var(--mut); font-size:14px; text-decoration:underline; margin-top:4px; }
 .hbtns { display:flex; gap:6px; }
 .list-head button { border:1px solid #e2e8f0; background:#fff; border-radius:10px; padding:9px 12px; font-size:14px; }
 .danger { color:var(--red); }

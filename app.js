@@ -1,7 +1,29 @@
 const KEY = 'expenseswallet.v1';
-const EXPENSE_CATS = ['Еда','Транспорт','Дом','Здоровье','Одежда','Связь','Покупки','Развлечения','Образование','Кредит','Долги','Подарки','Лекарства','Другое'];
-const INCOME_CATS = ['Зарплата','Аванс','Подработка','Подарок','Возврат долга','Кредит получен','Другое'];
-const CAT_COLORS = { 'Еда':'#ef4444','Транспорт':'#f59e0b','Дом':'#8b5cf6','Здоровье':'#10b981','Одежда':'#ec4899','Связь':'#06b6d4','Покупки':'#f97316','Развлечения':'#a855f7','Образование':'#3b82f6','Кредит':'#dc2626','Долги':'#991b1b','Подарки':'#eab308','Лекарства':'#12ca8d','Другое':'#3c3d3d','Зарплата':'#16a34a','Аванс':'#22c55e','Подработка':'#059669','Подарок':'#65a30d','Возврат долга':'#0d9488','Кредит получен':'#0284c7' };
+const CATS_KEY = 'expenseswallet.cats.v1';
+const COLORS_KEY = 'expenseswallet.colors.v1';
+const DEFAULT_EXPENSE = ['Еда','Транспорт','Дом','Здоровье','Одежда','Связь','Покупки','Развлечения','Образование','Кредит','Долги','Подарки','Лекарства','Другое'];
+const DEFAULT_INCOME = ['Зарплата','Аванс','Подработка','Подарок','Возврат долга','Кредит получен','Другое'];
+const DEFAULT_COLORS = { 'Еда':'#ef4444','Транспорт':'#f59e0b','Дом':'#8b5cf6','Здоровье':'#10b981','Одежда':'#ec4899','Связь':'#06b6d4','Покупки':'#f97316','Развлечения':'#a855f7','Образование':'#3b82f6','Кредит':'#dc2626','Долги':'#991b1b','Подарки':'#eab308','Лекарства':'#12ca8d','Другое':'#3c3d3d','Зарплата':'#16a34a','Аванс':'#22c55e','Подработка':'#059669','Подарок':'#65a30d','Возврат долга':'#0d9488','Кредит получен':'#0284c7' };
+
+function loadCats() {
+  try { return JSON.parse(localStorage.getItem(CATS_KEY)) || {}; }
+  catch { return {}; }
+}
+function saveCats(c) { localStorage.setItem(CATS_KEY, JSON.stringify(c)); }
+function loadColors() {
+  try { return JSON.parse(localStorage.getItem(COLORS_KEY)) || {}; }
+  catch { return {}; }
+}
+function saveColors(c) { localStorage.setItem(COLORS_KEY, JSON.stringify(c)); }
+function getExpenseCats() {
+  const c = loadCats().expense || [];
+  return [...DEFAULT_EXPENSE, ...c.filter(x => !DEFAULT_EXPENSE.includes(x))];
+}
+function getIncomeCats() {
+  const c = loadCats().income || [];
+  return [...DEFAULT_INCOME, ...c.filter(x => !DEFAULT_INCOME.includes(x))];
+}
+function getColors() { return Object.assign({}, DEFAULT_COLORS, loadColors()); }
 
 let type = 'expense';
 let viewYear, viewMonth;
@@ -19,7 +41,9 @@ function load() {
 function save(tx) { localStorage.setItem(KEY, JSON.stringify(tx)); }
 function fmt(n) { return (Math.round(n * 100) / 100).toLocaleString('ru-RU'); }
 function monthId(y, m) { return y + '-' + String(m + 1).padStart(2, '0'); }
-function colorFor(c) { return CAT_COLORS[c] || '#64748b'; }
+function colorFor(c) { return getColors()[c] || '#64748b'; }
+
+let catType = 'expense';
 
 function setType(t) {
   type = t;
@@ -28,12 +52,44 @@ function setType(t) {
   fillCats();
 }
 function fillCats() {
-  const cats = type === 'expense' ? EXPENSE_CATS : INCOME_CATS;
-  $('category').innerHTML = cats.map(c => `<option>${c}</option>`).join('');
+  const cats = type === 'expense' ? getExpenseCats() : getIncomeCats();
+  const prev = $('category').value;
+  $('category').innerHTML = cats.map(c => `<option>${escapeHtml(c)}</option>`).join('');
+  if (cats.includes(prev)) $('category').value = prev;
+}
+
+function renderCatList() {
+  const store = loadCats();
+  const list = catType === 'expense' ? getExpenseCats() : getIncomeCats();
+  const custom = new Set([...(store.expense || []), ...(store.income || [])]);
+  $('catTypeExpense').classList.toggle('active', catType === 'expense');
+  $('catTypeIncome').classList.toggle('active', catType === 'income');
+  $('catList').innerHTML = '';
+  list.forEach(c => {
+    const row = document.createElement('div');
+    row.className = 'cat-row';
+    const isCustom = custom.has(c);
+    row.innerHTML = `<span><span class="dot" style="background:${colorFor(c)}"></span>${escapeHtml(c)}${isCustom ? '' : ' <span class="muted">· станд.</span>'}</span>`;
+    if (isCustom) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'del small-del'; b.textContent = '×'; b.setAttribute('aria-label', 'Удалить категорию');
+      b.onclick = () => {
+        if (!confirm(`Удалить категорию «${c}»? Записи останутся.`)) return;
+        const s = loadCats();
+        const k = catType === 'expense' ? 'expense' : 'income';
+        s[k] = (s[k] || []).filter(x => x !== c);
+        saveCats(s);
+        const col = loadColors(); delete col[c]; saveColors(col);
+        fillCats(); renderCatList(); render();
+      };
+      row.appendChild(b);
+    }
+    $('catList').appendChild(row);
+  });
 }
 
 function switchTab(name) {
-  ['home','history','report'].forEach(n => {
+  ['home','history','report','settings'].forEach(n => {
     $('view-' + n).hidden = n !== name;
     $('tab-' + n).classList.toggle('active', n === name);
   });
@@ -42,6 +98,22 @@ function switchTab(name) {
 $('tab-home').onclick = () => switchTab('home');
 $('tab-history').onclick = () => switchTab('history');
 $('tab-report').onclick = () => switchTab('report');
+$('tab-settings').onclick = () => switchTab('settings');
+
+async function hardReload() {
+  try {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for (const r of regs) { try { await r.unregister(); } catch {} }
+    }
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      for (const k of keys) { try { await caches.delete(k); } catch {} }
+    }
+  } catch {}
+  const url = location.pathname + '?v=' + Date.now();
+  location.replace(url);
+}
 
 function monthItems() {
   const all = load();
@@ -63,6 +135,11 @@ function render() {
   $('totalIn').textContent = fmt(tin);
   $('totalOut').textContent = fmt(tout);
   $('balance').textContent = fmt(tin - tout) + ' ₸';
+  $('historyCount').textContent = items.length ? `Записей: ${items.length}` : '';
+  try {
+    const raw = localStorage.getItem(KEY) || '[]';
+    $('storageInfo').textContent = `Записей всего: ${load().length} · Размер: ${(raw.length / 1024).toFixed(1)} КБ на этом телефоне`;
+  } catch {}
 
   // history
   listEl.innerHTML = '';
@@ -192,6 +269,34 @@ $('wipeBtn').onclick = () => {
   render();
 };
 
+$('updateBtn').onclick = () => {
+  if (!confirm('Обновить приложение до новой версии?')) return;
+  hardReload();
+};
+
+$('catTypeExpense').onclick = () => { catType = 'expense'; renderCatList(); };
+$('catTypeIncome').onclick = () => { catType = 'income'; renderCatList(); };
+$('catAddBtn').onclick = () => {
+  const name = $('catName').value.trim().slice(0, 24);
+  const color = $('catColor').value || '#16a34a';
+  if (!name) { alert('Введите название категории'); return; }
+  if (getExpenseCats().includes(name) || getIncomeCats().includes(name)) { alert('Такая категория уже есть'); return; }
+  const s = loadCats();
+  const k = catType === 'expense' ? 'expense' : 'income';
+  s[k] = [...(s[k] || []), name];
+  saveCats(s);
+  const col = loadColors(); col[name] = color; saveColors(col);
+  $('catName').value = '';
+  fillCats(); renderCatList(); render();
+};
+$('catResetBtn').onclick = () => {
+  if (!confirm('Убрать все свои категории и вернуть стандартные?')) return;
+  localStorage.removeItem(CATS_KEY);
+  localStorage.removeItem(COLORS_KEY);
+  fillCats(); renderCatList(); render();
+};
+
 $('date').value = new Date().toISOString().slice(0, 10);
 setType('expense');
+renderCatList();
 render();

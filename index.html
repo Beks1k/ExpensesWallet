@@ -56,13 +56,8 @@
       <header class="card">
         <div class="list-head">
           <h2>История · <span id="historyMonth"></span></h2>
-          <div class="hbtns">
-            <button id="exportBtn" type="button">Скачать</button>
-            <button id="importBtn" type="button">Загрузить</button>
-            <button id="wipeBtn" type="button" class="danger">Очистить</button>
-          </div>
-          <input id="importFile" type="file" accept="application/json,.json" hidden />
         </div>
+        <p class="muted" id="historyCount"></p>
         <ul id="list"></ul>
         <p id="empty" class="muted">Пока пусто. Добавьте первую запись на вкладке «Главная».</p>
       </header>
@@ -85,6 +80,40 @@
       </section>
     </section>
 
+    <!-- SETTINGS -->
+    <section id="view-settings" class="view" hidden>
+      <header class="card">
+        <h2>Настройки</h2>
+        <p class="muted" id="storageInfo"></p>
+      </header>
+      <section class="card">
+        <h3>Данные</h3>
+        <button id="exportBtn" class="set-btn" type="button">Скачать копию<span>Сохранить историю в файл</span></button>
+        <button id="importBtn" class="set-btn" type="button">Загрузить копию<span>Восстановить из файла</span></button>
+        <input id="importFile" type="file" accept="application/json,.json" hidden />
+        <button id="wipeBtn" class="set-btn danger-btn" type="button">Удалить все записи<span>Очистить этот телефон</span></button>
+      </section>
+      <section class="card">
+        <h3>Мои категории</h3>
+        <div class="type-toggle small">
+          <button id="catTypeExpense" class="active" type="button">Расход</button>
+          <button id="catTypeIncome" type="button">Доход</button>
+        </div>
+        <div class="grid2">
+          <label>Название<input id="catName" type="text" placeholder="например, Такси" maxlength="24" /></label>
+          <label>Цвет<input id="catColor" type="color" value="#16a34a" /></label>
+        </div>
+        <button id="catAddBtn" class="set-btn primary-btn" type="button" style="margin-top:8px">Добавить категорию</button>
+        <div id="catList"></div>
+        <button id="catResetBtn" type="button" class="link-btn">Сбросить к стандартным</button>
+      </section>
+      <section class="card">
+        <h3>Приложение</h3>
+        <button id="updateBtn" class="set-btn primary-btn" type="button">Обновить приложение<span>Жёсткая перезагрузка без клавиатуры</span></button>
+        <p class="muted">Версия: v6 · Работает без интернета</p>
+      </section>
+    </section>
+
     <p class="hint">На iPhone: Поделиться → На экран «Домой». Работает без интернета.</p>
     <div class="tabbar-space"></div>
   </main>
@@ -93,6 +122,7 @@
     <button id="tab-home" class="active" type="button"><span class="ticon">◉</span>Главная</button>
     <button id="tab-history" type="button"><span class="ticon">☰</span>История</button>
     <button id="tab-report" type="button"><span class="ticon">▦</span>Отчёт</button>
+    <button id="tab-settings" type="button"><span class="ticon">⚙</span>Ещё</button>
   </nav>
 
   <script src="./app.js"></script>
