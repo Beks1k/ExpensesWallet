@@ -1,6 +1,8 @@
 const KEY = 'expenseswallet.v1';
 const CATS_KEY = 'expenseswallet.cats.v1';
 const COLORS_KEY = 'expenseswallet.colors.v1';
+const PREFS_KEY = 'expenseswallet.prefs.v1';
+const IGNORE_KEY = 'expenseswallet.ignore.v1';
 const DEFAULT_EXPENSE = ['Еда','Транспорт','Дом','Здоровье','Одежда','Связь','Покупки','Развлечения','Образование','Кредит','Долги','Подарки','Лекарства','Другое'];
 const DEFAULT_INCOME = ['Зарплата','Аванс','Подработка','Подарок','Возврат долга','Кредит получен','Другое'];
 const DEFAULT_COLORS = { 'Еда':'#ef4444','Транспорт':'#f59e0b','Дом':'#8b5cf6','Здоровье':'#10b981','Одежда':'#ec4899','Связь':'#06b6d4','Покупки':'#f97316','Развлечения':'#a855f7','Образование':'#3b82f6','Кредит':'#dc2626','Долги':'#991b1b','Подарки':'#eab308','Лекарства':'#12ca8d','Другое':'#3c3d3d','Зарплата':'#16a34a','Аванс':'#22c55e','Подработка':'#059669','Подарок':'#65a30d','Возврат долга':'#0d9488','Кредит получен':'#0284c7' };
@@ -24,6 +26,16 @@ function getIncomeCats() {
   return [...DEFAULT_INCOME, ...c.filter(x => !DEFAULT_INCOME.includes(x))];
 }
 function getColors() { return Object.assign({}, DEFAULT_COLORS, loadColors()); }
+function loadPrefs() {
+  try { return Object.assign({ theme: 'auto', budgetOn: false, budgetAmount: 0 }, JSON.parse(localStorage.getItem(PREFS_KEY)) || {}); }
+  catch { return { theme: 'auto', budgetOn: false, budgetAmount: 0 }; }
+}
+function savePrefs(p) { localStorage.setItem(PREFS_KEY, JSON.stringify(p)); }
+function loadIgnored() {
+  try { const v = JSON.parse(localStorage.getItem(IGNORE_KEY)); return Array.isArray(v) ? v : []; }
+  catch { return []; }
+}
+function saveIgnored(a) { localStorage.setItem(IGNORE_KEY, JSON.stringify(a)); }
 
 let type = 'expense';
 let viewYear, viewMonth;
@@ -42,6 +54,15 @@ function save(tx) { localStorage.setItem(KEY, JSON.stringify(tx)); }
 function fmt(n) { return (Math.round(n * 100) / 100).toLocaleString('ru-RU'); }
 function monthId(y, m) { return y + '-' + String(m + 1).padStart(2, '0'); }
 function colorFor(c) { return getColors()[c] || '#64748b'; }
+
+function applyTheme() {
+  const p = loadPrefs();
+  const dark = p.theme === 'dark' || (p.theme === 'auto' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+}
+if (window.matchMedia) {
+  try { window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (loadPrefs().theme === 'auto') applyTheme(); }); } catch {}
+}
 
 let catType = 'expense';
 
@@ -80,11 +101,36 @@ function renderCatList() {
         s[k] = (s[k] || []).filter(x => x !== c);
         saveCats(s);
         const col = loadColors(); delete col[c]; saveColors(col);
-        fillCats(); renderCatList(); render();
+        const ig = loadIgnored().filter(x => x !== c); saveIgnored(ig);
+        fillCats(); renderCatList(); renderIgnoreList(); render();
       };
       row.appendChild(b);
     }
     $('catList').appendChild(row);
+  });
+}
+
+function renderIgnoreList() {
+  const ignored = new Set(loadIgnored());
+  const all = [...getExpenseCats(), ...getIncomeCats()].filter((v, i, a) => a.indexOf(v) === i);
+  $('ignoreList').innerHTML = '';
+  all.forEach(c => {
+    const lab = document.createElement('label');
+    lab.className = 'check-row';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = ignored.has(c);
+    cb.onchange = () => {
+      const cur = new Set(loadIgnored());
+      if (cb.checked) cur.add(c); else cur.delete(c);
+      saveIgnored([...cur]);
+      render();
+    };
+    lab.appendChild(cb);
+    const sp = document.createElement('span');
+    sp.innerHTML = `<span class="dot" style="background:${colorFor(c)}"></span>${escapeHtml(c)}`;
+    lab.appendChild(sp);
+    $('ignoreList').appendChild(lab);
   });
 }
 
@@ -141,6 +187,9 @@ function render() {
     $('storageInfo').textContent = `Записей всего: ${load().length} · Размер: ${(raw.length / 1024).toFixed(1)} КБ на этом телефоне`;
   } catch {}
 
+  renderBudget(items);
+  renderPrefsUI();
+
   // history
   listEl.innerHTML = '';
   emptyEl.style.display = items.length ? 'none' : 'block';
@@ -164,7 +213,59 @@ function render() {
   renderReport(items, tin, tout);
 }
 
+function renderPrefsUI() {
+  const p = loadPrefs();
+  if ($('budgetOn').checked !== !!p.budgetOn) $('budgetOn').checked = !!p.budgetOn;
+  if (document.activeElement !== $('budgetAmount') && String(p.budgetAmount || '') !== $('budgetAmount').value) {
+    $('budgetAmount').value = p.budgetAmount || '';
+  }
+  if ($('themeSel').value !== p.theme) $('themeSel').value = p.theme;
+}
+
+function renderBudget(items) {
+  const p = loadPrefs();
+  const block = $('budgetBlock');
+  if (!p.budgetOn || !(+p.budgetAmount > 0)) { block.hidden = true; return; }
+  block.hidden = false;
+  let spent = 0;
+  items.forEach(t => { if (t.type === 'expense') spent += +t.amount; });
+  const lim = +p.budgetAmount;
+  const pct = Math.min(100, Math.round(spent / lim * 100));
+  $('budgetText').textContent = `Потрачено ${fmt(spent)} из ${fmt(lim)}`;
+  $('budgetPct').textContent = pct + '%';
+  const fill = $('budgetFill');
+  fill.style.width = pct + '%';
+  fill.parentElement.classList.toggle('over', spent > lim);
+  const w = $('budgetWarn');
+  if (spent > lim) { w.hidden = false; w.textContent = `Превышен на ${fmt(spent - lim)}!`; }
+  else if (spent >= lim * 0.8) { w.hidden = false; w.textContent = `Осталось ${fmt(lim - spent)} — близко к лимиту`; }
+  else { w.hidden = true; }
+}
+
+function renderDonut(expSorted, total) {
+  const svg = $('donutChart');
+  const R = 54, C = 2 * Math.PI * R;
+  const TOP = 6;
+  const shown = expSorted.slice(0, TOP);
+  const rest = expSorted.slice(TOP).reduce((s, [, v]) => s + v, 0);
+  const parts = rest > 0 ? [...shown, ['Другое (остальное)', rest]] : shown;
+  $('donutTotal').textContent = fmt(total);
+  if (!parts.length || !total) {
+    svg.innerHTML = `<circle cx="70" cy="70" r="${R}" fill="none" stroke="currentColor" stroke-opacity=".15" stroke-width="18"/>`;
+    return;
+  }
+  let off = 0;
+  svg.innerHTML = parts.map(([cat, sum]) => {
+    const frac = sum / total;
+    const len = Math.max(0, frac * C - 2);
+    const s = `<circle cx="70" cy="70" r="${R}" fill="none" stroke="${colorFor(cat === 'Другое (остальное)' ? 'Другое' : cat)}" stroke-width="18" stroke-dasharray="${len} ${C}" stroke-dashoffset="${-off}" transform="rotate(-90 70 70)"/>`;
+    off += frac * C;
+    return s;
+  }).join('');
+}
+
 function renderReport(items, tin, tout) {
+  const ignored = new Set(loadIgnored());
   const exp = {}, inc = {};
   items.forEach(t => {
     const m = t.type === 'income' ? inc : exp;
@@ -174,15 +275,31 @@ function renderReport(items, tin, tout) {
     ? `Записей: ${items.length} · Расход: ${fmt(tout)} · Доход: ${fmt(tin)}`
     : 'В этом месяце пока нет записей.';
 
+  // ignore list affects ONLY the donut + "biggest" badge
+  const expVis = Object.entries(exp).filter(([cat]) => !ignored.has(cat));
+  const visOut = expVis.reduce((s, [, v]) => s + v, 0);
+  let hiddenSum = 0, hiddenN = 0;
+  items.forEach(t => { if (t.type === 'expense' && ignored.has(t.category)) { hiddenSum += +t.amount; hiddenN++; } });
+  const note = $('ignoreNote');
+  if (hiddenN) { note.hidden = false; note.textContent = `В диаграмме скрыто: ${hiddenN} зап. на ${fmt(hiddenSum)} (см. Ещё → Не учитывать)`; }
+  else note.hidden = true;
+  $('donutSub').textContent = hiddenN ? 'в диаграмме (без скрытых)' : 'расход за месяц';
+
   const expSorted = Object.entries(exp).sort((a, b) => b[1] - a[1]);
+  const expVisSorted = expVis.sort((a, b) => b[1] - a[1]);
   const incSorted = Object.entries(inc).sort((a, b) => b[1] - a[1]);
 
+  renderDonut(expVisSorted, visOut);
+
   const top = $('topCat');
-  if (expSorted.length) {
-    const [cat, sum] = expSorted[0];
-    const pct = tout ? Math.round(sum / tout * 100) : 0;
+  if (expVisSorted.length) {
+    const [cat, sum] = expVisSorted[0];
+    const pct = visOut ? Math.round(sum / visOut * 100) : 0;
     top.hidden = false;
     top.textContent = `Больше всего в этом месяце: ${cat} — ${fmt(sum)} (${pct}%)`;
+  } else if (expSorted.length) {
+    top.hidden = false;
+    top.textContent = 'Все категории трат скрыты из диаграммы — уберите галочки в Ещё → Не учитывать';
   } else { top.hidden = true; }
 
   $('expenseStats').innerHTML = expSorted.length ? expSorted.map(([cat, sum]) => {
@@ -218,14 +335,30 @@ $('txForm').addEventListener('submit', (e) => {
   const [y, m] = date.split('-').map(Number);
   viewYear = y; viewMonth = m - 1;
   render();
-  switchTab('history');
 });
+
+function csvCell(v) {
+  const s = String(v ?? '');
+  return /[";\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
 
 $('exportBtn').onclick = () => {
   const blob = new Blob([localStorage.getItem(KEY) || '[]'], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'expenses-backup.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+$('csvBtn').onclick = () => {
+  const rows = load().sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  const head = 'date;type;category;amount;note';
+  const lines = rows.map(t => [t.date, t.type === 'income' ? 'доход' : 'расход', t.category, t.amount, t.note].map(csvCell).join(';'));
+  const blob = new Blob(['﻿' + head + '\n' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'expenses.csv';
   a.click();
   URL.revokeObjectURL(a.href);
 };
@@ -274,6 +407,16 @@ $('updateBtn').onclick = () => {
   hardReload();
 };
 
+$('budgetOn').onchange = () => {
+  const p = loadPrefs(); p.budgetOn = $('budgetOn').checked; savePrefs(p); render();
+};
+$('budgetAmount').onchange = () => {
+  const p = loadPrefs(); p.budgetAmount = parseFloat($('budgetAmount').value) || 0; savePrefs(p); render();
+};
+$('themeSel').onchange = () => {
+  const p = loadPrefs(); p.theme = $('themeSel').value; savePrefs(p); applyTheme();
+};
+
 $('catTypeExpense').onclick = () => { catType = 'expense'; renderCatList(); };
 $('catTypeIncome').onclick = () => { catType = 'income'; renderCatList(); };
 $('catAddBtn').onclick = () => {
@@ -287,16 +430,18 @@ $('catAddBtn').onclick = () => {
   saveCats(s);
   const col = loadColors(); col[name] = color; saveColors(col);
   $('catName').value = '';
-  fillCats(); renderCatList(); render();
+  fillCats(); renderCatList(); renderIgnoreList(); render();
 };
 $('catResetBtn').onclick = () => {
   if (!confirm('Убрать все свои категории и вернуть стандартные?')) return;
   localStorage.removeItem(CATS_KEY);
   localStorage.removeItem(COLORS_KEY);
-  fillCats(); renderCatList(); render();
+  fillCats(); renderCatList(); renderIgnoreList(); render();
 };
 
 $('date').value = new Date().toISOString().slice(0, 10);
+applyTheme();
 setType('expense');
 renderCatList();
+renderIgnoreList();
 render();

@@ -18,10 +18,12 @@ Open the link in Safari → Share → Add to Home Screen. Works offline.
 
 - **Главная** — balance for the month, income vs spending, quick add form (amount, category, date, note)
 - **История** — month-by-month list, per-entry delete, clean minimal header
-- **Отчёт** — spending and income broken down by category, sorted biggest-first, with bars, percents and a "biggest category" highlight
+- **Отчёт** — donut chart + spending and income broken down by category, sorted biggest-first, with bars and percents. Ticked-off categories (Ещё → Не учитывать, e.g. Кредит) disappear only from the donut and the "biggest" badge — totals, bars and history stay complete
 - **Ещё (Settings)** — backup and app controls:
-  - Скачать копию / Загрузить копию (JSON merge, no duplicates)
-  - Удалить все записи (with confirm)
+  - Бюджет на месяц: optional limit, off by default. When on, Главная shows progress + warnings at 80% and over-limit
+  - Не учитывать в отчёте: tick categories to hide from report stats
+  - Скачать копию / Загрузить копию (JSON merge, no duplicates) + Скачать CSV for Excel
+  - Оформление: light / dark / follow-the-phone theme
   - Мои категории: add your own spending/income categories with a color picker, delete custom ones, reset to defaults
   - Обновить приложение: one-tap hard reload (unregisters service worker, clears cache, reloads fresh) — no keyboard needed
 - 14 spending + 7 income categories out of the box, including Кредит, Долги, Лекарства, Зарплата, Аванс

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -13,6 +13,14 @@
   <link rel="icon" href="./icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="./icon.svg" />
   <link rel="stylesheet" href="./styles.css" />
+  <script>
+    try {
+      var p = JSON.parse(localStorage.getItem('expenseswallet.prefs.v1')) || {};
+      var t = p.theme || 'auto';
+      var dark = t === 'dark' || (t === 'auto' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+    } catch (e) {}
+  </script>
 </head>
 <body>
   <main class="app">
@@ -24,6 +32,11 @@
         <div class="row">
           <div class="pill in"><span>Доход</span><strong id="totalIn">0</strong></div>
           <div class="pill out"><span>Расход</span><strong id="totalOut">0</strong></div>
+        </div>
+        <div id="budgetBlock" hidden>
+          <div class="budget-top"><span id="budgetText"></span><strong id="budgetPct"></strong></div>
+          <div class="budget-bar"><div id="budgetFill"></div></div>
+          <p id="budgetWarn" class="budget-warn" hidden></p>
         </div>
         <div class="month-nav">
           <button id="prevMonth" aria-label="Предыдущий месяц">‹</button>
@@ -69,9 +82,14 @@
         <h2>Отчёт · <span id="reportMonth"></span></h2>
         <p class="muted" id="reportTotal"></p>
         <div id="topCat" class="topcat" hidden></div>
+        <p class="muted" id="ignoreNote" hidden></p>
       </header>
       <section class="card">
         <h3>Расходы по категориям</h3>
+        <div class="donut-wrap">
+          <svg id="donutChart" viewBox="0 0 140 140" width="132" height="132" role="img" aria-label="Диаграмма расходов"></svg>
+          <div><div id="donutTotal" class="donut-total"></div><div class="muted" id="donutSub">расход за месяц</div></div>
+        </div>
         <div id="expenseStats"></div>
       </section>
       <section class="card">
@@ -87,8 +105,20 @@
         <p class="muted" id="storageInfo"></p>
       </header>
       <section class="card">
+        <h3>Бюджет на месяц</h3>
+        <label class="check-row"><input id="budgetOn" type="checkbox" /> Ограничить траты</label>
+        <label>Лимит<input id="budgetAmount" type="number" inputmode="decimal" min="0" step="100" placeholder="например, 200000" /></label>
+        <p class="muted">Необязательно. Если выключено — ничего не мешает и не предупреждает.</p>
+      </section>
+      <section class="card">
+        <h3>Не учитывать в отчёте</h3>
+        <p class="muted">Например, Кредит: уберёт из диаграммы и «больше всего». Суммы, полоски и история не меняются.</p>
+        <div id="ignoreList"></div>
+      </section>
+      <section class="card">
         <h3>Данные</h3>
-        <button id="exportBtn" class="set-btn" type="button">Скачать копию<span>Сохранить историю в файл</span></button>
+        <button id="exportBtn" class="set-btn" type="button">Скачать копию<span>Сохранить историю в файл (JSON)</span></button>
+        <button id="csvBtn" class="set-btn" type="button">Скачать CSV<span>Для Excel и таблиц</span></button>
         <button id="importBtn" class="set-btn" type="button">Загрузить копию<span>Восстановить из файла</span></button>
         <input id="importFile" type="file" accept="application/json,.json" hidden />
         <button id="wipeBtn" class="set-btn danger-btn" type="button">Удалить все записи<span>Очистить этот телефон</span></button>
@@ -108,9 +138,19 @@
         <button id="catResetBtn" type="button" class="link-btn">Сбросить к стандартным</button>
       </section>
       <section class="card">
+        <h3>Оформление</h3>
+        <label>Тема
+          <select id="themeSel">
+            <option value="auto">Как в телефоне</option>
+            <option value="light">Светлая</option>
+            <option value="dark">Тёмная</option>
+          </select>
+        </label>
+      </section>
+      <section class="card">
         <h3>Приложение</h3>
         <button id="updateBtn" class="set-btn primary-btn" type="button">Обновить приложение<span>Жёсткая перезагрузка без клавиатуры</span></button>
-        <p class="muted">Версия: v7 · Работает без интернета</p>
+        <p class="muted">Версия: v8 · Работает без интернета</p>
       </section>
     </section>
 
